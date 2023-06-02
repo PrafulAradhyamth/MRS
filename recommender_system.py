@@ -17,10 +17,20 @@ class MatrixFactorization(object):
 
         # Generate mask for known entries (non-zero elements), split the mask into a train and test mask
         self.mask = (self.R > 0).astype(dtype='int8')
-        self.split = np.random.rand(self.mask.shape[0], self.mask.shape[1])
-        self.mask_train = self.mask * (self.split >= 0.2).astype(dtype='int8')
-        self.mask_test = self.mask * (self.split < 0.2).astype(dtype='int8')
-        print(f"Known entries: {self.mask.sum()}, {self.mask_train.sum()} used for training and {self.mask_test.sum()} used for testing.")
+        self.Train_l = int(np.floor(0.8*self.mask.shape[0]))
+        self.Test_l = int(self.mask.shape[0]-np.floor(0.8*self.mask.shape[0]))
+        self.wid = int(self.mask.shape[1])
+        self.lenth = int(self.mask.shape[0])
+        print(self.mask.shape[0]-np.floor(0.8*self.mask.shape[0]))
+        self.split_train = np.vstack((np.ones((self.Train_l,self.wid)),np.zeros((self.Test_l,self.wid))))
+        self.split_test = np.vstack((np.zeros((self.Train_l,self.wid)),np.ones((self.Test_l,self.wid))))
+
+        #self.split = np.random.rand(self.mask.shape[0], self.mask.shape[1])
+        #self.mask_train = self.mask * (self.split >= 0.2).astype(dtype='int8')
+        #self.mask_test = self.mask * (self.split < 0.2).astype(dtype='int8')
+        self.mask_train = self.mask * (self.split_train).astype(dtype='int8')
+        self.mask_test = self.mask * (self.split_test).astype(dtype='int8')
+        print(f"Known entprries: {self.mask.sum()}, {self.mask_train.sum()} used for training and {self.mask_test.sum()} used for testing.")
 
         # For sparse implementation
         self.nonzero_indices = np.argwhere(self.mask_train > 0)
@@ -34,7 +44,7 @@ class MatrixFactorization(object):
 
         # Compute total amount of parameters that have to be estimated
         total_parameters = self.U.reshape(-1).size + self.V.reshape(-1).size
-        print(f"User matrix shape: {self.U.shape}, movie matrix shape: {self.V.shape}, total parameters: {total_parameters}")
+        print(f"PrafulUser matrix shape: {self.U.shape}, movie matrix shape: {self.V.shape}, total parameters: {total_parameters}")
 
     def gradient_user_matrix(self, error):
         return -np.matmul(error, self.V)
